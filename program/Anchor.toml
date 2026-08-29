@@ -1,0 +1,19 @@
+[toolchain]
+solana_version = "4.2.1"
+package_manager = "pnpm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+nft_marketplace = "C9RrLfoPdABJEM7C4xBnjjatjEpvJFyrqdyArPafVE2Q"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+
+[hooks]

@@ -1,0 +1,9 @@
+node_modules
+.DS_Store
+program/target
+program/.anchor
+program/test-ledger
+program/.surfpool
+dist
+.env
+.vscode/
