@@ -107,4 +107,46 @@ describe("nft_marketplace", () => {
       assert.include(error.logs?.join("\n") ?? "", "already in use");
     }
   });
+
+  it("fails to list an NFT you don't own", async () => {
+    const { nftMint, escrowNftAccount } = await setupSellerWithNft();
+
+    const attackerKp = Keypair.generate();
+    const attacker = attackerKp.publicKey;
+    
+    await requestAirdropAndConfirm(provider.connection, attackerKp);
+
+    const [listing] = PublicKey.findProgramAddressSync(
+      [listingSeed, nftMint.toBuffer()],
+      program.programId,
+    );
+    const attackerNftAccount = getAssociatedTokenAddressSync(nftMint, attacker);
+
+    const price = new anchor.BN(3 * LAMPORTS_PER_SOL);
+
+    try {
+      await program.methods
+        .list(price)
+        .accountsPartial({
+          seller: attacker,
+          nftMint,
+          listing,
+          sellerNftAccount: attackerNftAccount,
+          escrowNftAccount,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([attackerKp])
+        .rpc();
+      
+      assert.fail("expected list to fail (attacker doesn't own the NFT)");
+    } catch (error) {
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error;
+      }
+
+      assert.equal(error.error.errorCode.code, "AccountNotInitialized");
+      assert.equal(error.error.errorCode.number, 3012);
+      assert.equal(error.error.origin, "seller_nft_account");
+    }
+  });
 });
