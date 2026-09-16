@@ -2,15 +2,11 @@ import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
 
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { generateSigner, keypairIdentity, percentAmount } from "@metaplex-foundation/umi";
-import { createNft, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { fromWeb3JsKeypair, toWeb3JsPublicKey } from "@metaplex-foundation/umi-web3js-adapters";
-import { PublicKey, Keypair } from "@solana/web3.js";
+import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
-
-const LAMPORTS_PER_SOL = 1000000000;
+import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
+import { setupNft } from "./utils/setup-nft";
 
 describe("nft_marketplace", () => {
   const provider = anchor.AnchorProvider.env();
@@ -18,46 +14,29 @@ describe("nft_marketplace", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.nftMarketplace as Program<NftMarketplace>;
+  const listingSeed = Buffer.from(JSON.parse(
+    program.idl.constants.find((c) => c.name === "listingSeed")!.value,
+  ));
 
-  it("lists an NFT", async () => {
+  async function setupSellerWithNft() {
     const sellerKp = Keypair.generate();
     const seller = sellerKp.publicKey;
 
-    const sig = await provider.connection.requestAirdrop(seller, 5 * LAMPORTS_PER_SOL);
-    const latestBlockhash = await provider.connection.getLatestBlockhash();
+    await requestAirdropAndConfirm(provider.connection, sellerKp, 3 * LAMPORTS_PER_SOL);
 
-    await provider.connection.confirmTransaction({
-      signature: sig,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-    }, "confirmed");
-    
-    const umi = createUmi(provider.connection.rpcEndpoint)
-      .use(mplTokenMetadata())
-      .use(keypairIdentity(fromWeb3JsKeypair(sellerKp)));
-
-    const nftMintSigner = generateSigner(umi);
-    await createNft(umi, {
-      mint: nftMintSigner,
-      name: "Test NFT",
-      symbol: "TNFT",
-      uri: "https://example.com/metadata.json",
-      sellerFeeBasisPoints: percentAmount(5),
-    }).sendAndConfirm(umi);
-    
-    const nftMint = toWeb3JsPublicKey(nftMintSigner.publicKey);
-
-    console.log("Minted NFT:", nftMint.toBase58(), "owner:", seller.toBase58());
-
-    const listingSeed = Buffer.from(JSON.parse(
-      program.idl.constants.find((c) => c.name === "listingSeed")!.value,
-    ));
+    const nftMint = await setupNft(provider.connection, sellerKp);
     const [listing] = PublicKey.findProgramAddressSync(
       [listingSeed, nftMint.toBuffer()], 
       program.programId
     );
     const sellerNftAccount = getAssociatedTokenAddressSync(nftMint, seller);
     const escrowNftAccount = getAssociatedTokenAddressSync(nftMint, listing, true);
+
+    return { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount };
+  }
+
+  it("lists an NFT", async () => {
+    const { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount } = await setupSellerWithNft();
 
     const price = new anchor.BN(LAMPORTS_PER_SOL);
 
@@ -78,7 +57,27 @@ describe("nft_marketplace", () => {
 
     const sellerAcc = await getAccount(provider.connection, sellerNftAccount);
     assert.equal(sellerAcc.amount.toString(), "0");
-
-    console.log("Listing created, NFT in escrow");
   });
+
+  it("fails to list with zero price", async () => {
+    const { sellerKp, seller, nftMint } = await setupSellerWithNft();
+
+    try {
+      await program.methods
+        .list(new anchor.BN("0"))
+        .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
+        .signers([sellerKp])
+        .rpc();
+      
+      assert.fail("Expected list to fail with zero price");
+    } catch (error) {
+
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error
+      }
+
+      assert.equal(error.error.errorCode.code, "InvalidPrice");
+      assert.equal(error.error.errorCode.number, 6000);
+    }
+  })
 });
