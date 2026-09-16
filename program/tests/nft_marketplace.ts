@@ -2,7 +2,7 @@ import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
 
-import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { PublicKey, Keypair, LAMPORTS_PER_SOL, SendTransactionError } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
 import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
@@ -69,9 +69,8 @@ describe("nft_marketplace", () => {
         .signers([sellerKp])
         .rpc();
       
-      assert.fail("Expected list to fail with zero price");
+      assert.fail("expected list to fail with zero price");
     } catch (error) {
-
       if (!(error instanceof anchor.AnchorError)) {
         throw error
       }
@@ -79,5 +78,33 @@ describe("nft_marketplace", () => {
       assert.equal(error.error.errorCode.code, "InvalidPrice");
       assert.equal(error.error.errorCode.number, 6000);
     }
-  })
+  });
+
+  it("fails to list the same NFT twice", async () => {
+    const { sellerKp, seller, nftMint } = await setupSellerWithNft();
+
+    const price = new anchor.BN(LAMPORTS_PER_SOL);
+
+    await program.methods
+      .list(price)
+      .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
+      .signers([sellerKp])
+      .rpc();
+
+    try {
+      await program.methods
+        .list(price)
+        .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
+        .signers([sellerKp])
+        .rpc();
+
+      assert.fail("expected second list to fail (NFT already listed)");
+    } catch (error) {
+      if (!(error instanceof SendTransactionError)) {
+        throw error;
+      }
+
+      assert.include(error.logs?.join("\n") ?? "", "already in use");
+    }
+  });
 });
