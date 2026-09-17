@@ -2,7 +2,7 @@ import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
 import { setupSellerWithNft } from "./utils/setup-seller-with-nft";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, SendTransactionError } from "@solana/web3.js";
 import { getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
 import { assert } from "chai";
@@ -146,4 +146,32 @@ describe("buy", () => {
       assert.equal(error.error.errorCode.number, 3012);
     }
   });
+
+  it("fails to buy without enough SOL", async () => {
+    const { nftMint } = await listNft();
+
+    const buyerKp = Keypair.generate();
+    
+    await requestAirdropAndConfirm(provider.connection, buyerKp, LAMPORTS_PER_SOL / 10);
+
+    try {
+      await program.methods
+        .buy()
+        .accounts({
+          nftMint,
+          buyer: buyerKp.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([buyerKp])
+        .rpc();
+
+      assert.fail("expected buy to fail (buyer doesn't have enough SOL)");
+    } catch(error) {
+      if (!(error instanceof SendTransactionError)) {
+        throw error;
+      }
+
+      assert.include(error.logs?.join("\n") ?? "", "insufficient lamports");
+    }
+  })
 })
