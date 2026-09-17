@@ -8,6 +8,7 @@ use anchor_spl::{
     },
 };
 
+use crate::error::MarketplaceError;
 use crate::{constants::LISTING_SEED, state::Listing};
 
 #[derive(Accounts)]
@@ -50,6 +51,8 @@ pub struct Buy<'info> {
 }
 
 pub fn handle_buy(ctx: Context<Buy>) -> Result<()> {
+    require!(ctx.accounts.buyer.key() != ctx.accounts.seller.key(), MarketplaceError::CannotBuyOwnListing);
+
     let price = ctx.accounts.listing.price;
 
     let transfer_sol_to_accounts = Transfer {
