@@ -34,7 +34,7 @@ describe("buy", () => {
       .signers([sellerKp])
       .rpc();
 
-    return { nftMint, nftPrice: price, escrowNftAccount, listing, seller };
+    return { nftMint, nftPrice: price, escrowNftAccount, listing, seller, sellerKp };
   }
 
   it("buy an NFT", async () => {
@@ -166,12 +166,37 @@ describe("buy", () => {
         .rpc();
 
       assert.fail("expected buy to fail (buyer doesn't have enough SOL)");
-    } catch(error) {
+    } catch (error) {
       if (!(error instanceof SendTransactionError)) {
         throw error;
       }
 
       assert.include(error.logs?.join("\n") ?? "", "insufficient lamports");
     }
-  })
+  });
+
+  it("fails to buy your own listing", async () => {
+    const { nftMint, seller, sellerKp } = await listNft();
+
+    try {
+      await program.methods
+        .buy()
+        .accounts({
+          nftMint,
+          buyer: seller,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([sellerKp])
+        .rpc();
+      
+      assert.fail("expected buy to fail (buyer is the seller)");
+    } catch (error) {
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error;
+      }
+
+      assert.equal(error.error.errorCode.code, "CannotBuyOwnListing");
+      assert.equal(error.error.errorCode.number, 6001);
+    }
+  });
 })
