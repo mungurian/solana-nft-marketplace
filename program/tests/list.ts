@@ -6,9 +6,9 @@ import { PublicKey, Keypair, LAMPORTS_PER_SOL, SendTransactionError } from "@sol
 import { getAssociatedTokenAddressSync, getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
 import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
-import { setupNft } from "./utils/setup-nft";
+import { setupSellerWithNft } from "./utils/setup-seller-with-nft";
 
-describe("nft_marketplace", () => {
+describe("list", () => {
   const provider = anchor.AnchorProvider.env();
 
   anchor.setProvider(provider);
@@ -18,25 +18,14 @@ describe("nft_marketplace", () => {
     program.idl.constants.find((c) => c.name === "listingSeed")!.value,
   ));
 
-  async function setupSellerWithNft() {
-    const sellerKp = Keypair.generate();
-    const seller = sellerKp.publicKey;
-
-    await requestAirdropAndConfirm(provider.connection, sellerKp, 3 * LAMPORTS_PER_SOL);
-
-    const nftMint = await setupNft(provider.connection, sellerKp);
-    const [listing] = PublicKey.findProgramAddressSync(
-      [listingSeed, nftMint.toBuffer()], 
-      program.programId
-    );
-    const sellerNftAccount = getAssociatedTokenAddressSync(nftMint, seller);
-    const escrowNftAccount = getAssociatedTokenAddressSync(nftMint, listing, true);
-
-    return { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount };
-  }
+  const _setupSellerWithNft = () => setupSellerWithNft(
+    provider.connection, 
+    program.programId, 
+    listingSeed
+  );
 
   it("lists an NFT", async () => {
-    const { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount } = await setupSellerWithNft();
+    const { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount } = await _setupSellerWithNft();
 
     const price = new anchor.BN(LAMPORTS_PER_SOL);
 
@@ -60,7 +49,7 @@ describe("nft_marketplace", () => {
   });
 
   it("fails to list with zero price", async () => {
-    const { sellerKp, seller, nftMint } = await setupSellerWithNft();
+    const { sellerKp, seller, nftMint } = await _setupSellerWithNft();
 
     try {
       await program.methods
@@ -81,7 +70,7 @@ describe("nft_marketplace", () => {
   });
 
   it("fails to list the same NFT twice", async () => {
-    const { sellerKp, seller, nftMint } = await setupSellerWithNft();
+    const { sellerKp, seller, nftMint } = await _setupSellerWithNft();
 
     const price = new anchor.BN(LAMPORTS_PER_SOL);
 
@@ -109,7 +98,7 @@ describe("nft_marketplace", () => {
   });
 
   it("fails to list an NFT you don't own", async () => {
-    const { nftMint, escrowNftAccount } = await setupSellerWithNft();
+    const { nftMint, escrowNftAccount } = await _setupSellerWithNft();
 
     const attackerKp = Keypair.generate();
     const attacker = attackerKp.publicKey;
