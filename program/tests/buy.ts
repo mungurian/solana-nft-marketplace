@@ -105,4 +105,45 @@ describe("buy", () => {
       assert.equal(error.error.errorCode.number, 2001);
     }
   });
+
+  it("fails to buy an NFT that was already sold", async () => {
+    const { nftMint, seller, listing, escrowNftAccount } = await listNft();
+
+    const buyerKp = Keypair.generate();
+
+    await requestAirdropAndConfirm(provider.connection, buyerKp, 3 * LAMPORTS_PER_SOL);
+
+    await program.methods
+      .buy()
+      .accounts({ buyer: buyerKp.publicKey, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
+      .signers([buyerKp])
+      .rpc();
+
+    const buyerNftAccount = getAssociatedTokenAddressSync(nftMint, buyerKp.publicKey);
+    
+    try {
+      await program.methods
+        .buy()
+        .accountsPartial({ 
+          nftMint,
+          buyer: buyerKp.publicKey, 
+          seller,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          listing,
+          escrowNftAccount,
+          buyerNftAccount,
+        })
+        .signers([buyerKp])
+        .rpc();
+
+      assert.fail("expected second buy to fail (listing already closed)");
+    } catch (error) {
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error;
+      }
+
+      assert.equal(error.error.errorCode.code, "AccountNotInitialized");
+      assert.equal(error.error.errorCode.number, 3012);
+    }
+  });
 })
