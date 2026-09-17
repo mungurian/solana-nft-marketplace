@@ -18,4 +18,8 @@ pub mod nft_marketplace {
     pub fn list(ctx: Context<List>, price: u64) -> Result<()> {
         instructions::list::handle_list(ctx, price)
     }
+
+    pub fn buy(ctx: Context<Buy>) -> Result<()> {
+        instructions::buy::handle_buy(ctx)
+    }
 }
