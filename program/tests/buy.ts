@@ -69,5 +69,40 @@ describe("buy", () => {
       sellerBalanceAfter,
       sellerBalanceBefore + escrowBalanceBefore + listingBalanceBefore + nftPrice.toNumber(),
     );
-  })
+  });
+
+  it("fails to buy when seller account doesn't match the listing", async () => {
+    const { nftMint, listing, escrowNftAccount } = await listNft();
+
+    const buyerKp = Keypair.generate();
+    const buyerNftAccount = getAssociatedTokenAddressSync(nftMint, buyerKp.publicKey);
+    const attackerSellerKp = Keypair.generate();
+    
+    await requestAirdropAndConfirm(provider.connection, buyerKp, 3 * LAMPORTS_PER_SOL);
+
+    try {
+      await program.methods
+        .buy()
+        .accountsPartial({
+          nftMint,
+          buyer: buyerKp.publicKey,
+          seller: attackerSellerKp.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          listing,
+          escrowNftAccount,
+          buyerNftAccount,
+        })
+        .signers([buyerKp])
+        .rpc();
+
+      assert.fail("expected buy to fail (seller doesn't match listing)");
+    } catch (error) {
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error;
+      }
+
+      assert.equal(error.error.errorCode.code, 'ConstraintHasOne');
+      assert.equal(error.error.errorCode.number, 2001);
+    }
+  });
 })
