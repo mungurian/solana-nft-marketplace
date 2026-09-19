@@ -4,6 +4,8 @@ import { NftMarketplace } from "../target/types/nft_marketplace";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
 import { listNft } from "./utils/list-nft";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
 
 describe("delist", () => {
   const provider = anchor.AnchorProvider.env();
@@ -69,4 +71,53 @@ describe("delist", () => {
       assert.equal(error.error.errorCode.number, 3012);
     } 
   });
+
+  it("fails to delist when seller account doesn't match the listing", async () => {
+    const { seller: attacker, sellerKp: attackerKp, nftMint, nftPrice } = await _listNft();
+
+    const buyerKp = Keypair.generate();
+
+    await requestAirdropAndConfirm(provider.connection, buyerKp, 3 * LAMPORTS_PER_SOL);
+
+    await program.methods
+      .buy()
+      .accounts({
+        buyer: buyerKp.publicKey,
+        nftMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([buyerKp])
+      .rpc();
+
+    await program.methods
+      .list(nftPrice)
+      .accounts({
+        seller: buyerKp.publicKey,
+        nftMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([buyerKp])
+      .rpc();
+
+    try {
+      await program.methods
+        .delist()
+        .accounts({
+          seller: attacker,
+          nftMint,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([attackerKp])
+        .rpc();
+
+      assert.fail("expected delist to fail (seller doesn't match listing)");
+    } catch (error) {
+      if (!(error instanceof anchor.AnchorError)) {
+        throw error;
+      }
+
+      assert.equal(error.error.errorCode.code, "ConstraintHasOne");
+      assert.equal(error.error.errorCode.number, 2001);
+    }
+  }) 
 });
