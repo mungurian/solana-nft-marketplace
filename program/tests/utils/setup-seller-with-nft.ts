@@ -22,5 +22,7 @@ export async function setupSellerWithNft(
     const sellerNftAccount = getAssociatedTokenAddressSync(nftMint, seller);
     const escrowNftAccount = getAssociatedTokenAddressSync(nftMint, listing, true);
 
+    console.log("Seller set up:", seller.toBase58(), "listing:", listing.toBase58());
+
     return { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount };
   }

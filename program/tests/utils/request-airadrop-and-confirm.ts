@@ -14,4 +14,6 @@ export async function requestAirdropAndConfirm(
     blockhash: latestBlockhash.blockhash,
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
   }, "confirmed");
+
+  console.log("Airdropped:", lamports, "lamports to:", recipient.publicKey.toBase58());
 }

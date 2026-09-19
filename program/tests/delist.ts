@@ -7,6 +7,11 @@ import { listNft } from "./utils/list-nft";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
 
+// `seller` may show a false TS error here ("does not exist in type ResolvedAccounts...").
+// It's both `signer: true` and `relations: ["listing"]` (from `has_one = seller`) in the IDL;
+// ResolvedAccount in @anchor-lang/core's methods.d.ts checks `relations` before `signer` and
+// wrongly excludes it, but the runtime resolver defaults unresolved signers to `provider.wallet`
+// (not via relations) — so `seller` must still be passed explicitly. Safe to ignore the error.
 describe("delist", () => {
   const provider = anchor.AnchorProvider.env();
 

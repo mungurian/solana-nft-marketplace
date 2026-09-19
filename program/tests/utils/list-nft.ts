@@ -23,5 +23,7 @@ export async function listNft(
     .signers([sellerKp])
     .rpc();
 
+  console.log("Listed NFT:", nftMint.toBase58(), "for:", price.toString(), "lamports");
+
   return { nftMint, nftPrice: price, escrowNftAccount, listing, seller, sellerKp, sellerNftAccount };
 }
