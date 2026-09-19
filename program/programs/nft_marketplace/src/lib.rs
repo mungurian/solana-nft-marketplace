@@ -22,4 +22,8 @@ pub mod nft_marketplace {
     pub fn buy(ctx: Context<Buy>) -> Result<()> {
         instructions::buy::handle_buy(ctx)
     }
+
+    pub fn delist(ctx: Context<Delist>) -> Result<()> {
+        instructions::delist::handle_delist(ctx)
+    }
 }
