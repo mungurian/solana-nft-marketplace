@@ -7,6 +7,7 @@ import { getAssociatedTokenAddressSync, getAccount, TOKEN_PROGRAM_ID } from "@so
 import { assert } from "chai";
 import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
 import { setupSellerWithNft } from "./utils/setup-seller-with-nft";
+import { listNft } from "./utils/list-nft";
 
 describe("list", () => {
   const provider = anchor.AnchorProvider.env();
@@ -24,22 +25,23 @@ describe("list", () => {
     listingSeed
   );
 
+  const _listNft = () => listNft(provider.connection, program, listingSeed);
+
   it("lists an NFT", async () => {
-    const { sellerKp, seller, nftMint, listing, sellerNftAccount, escrowNftAccount } = await _setupSellerWithNft();
-
-    const price = new anchor.BN(LAMPORTS_PER_SOL);
-
-    await program.methods
-      .list(price)
-      .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
-      .signers([sellerKp])
-      .rpc();
+    const { 
+      seller, 
+      nftMint,
+      nftPrice,
+      listing, 
+      sellerNftAccount, 
+      escrowNftAccount,
+    } = await _listNft();
 
     const listingAccount = await program.account.listing.fetch(listing);
 
     assert.equal(listingAccount.seller.toBase58(), seller.toBase58());
     assert.equal(listingAccount.nftMint.toBase58(), nftMint.toBase58());
-    assert.equal(listingAccount.price.toString(), price.toString());
+    assert.equal(listingAccount.price.toString(), nftPrice.toString());
 
     const escrow = await getAccount(provider.connection, escrowNftAccount);
     assert.equal(escrow.amount.toString(), "1");
@@ -70,19 +72,11 @@ describe("list", () => {
   });
 
   it("fails to list the same NFT twice", async () => {
-    const { sellerKp, seller, nftMint } = await _setupSellerWithNft();
-
-    const price = new anchor.BN(LAMPORTS_PER_SOL);
-
-    await program.methods
-      .list(price)
-      .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
-      .signers([sellerKp])
-      .rpc();
+    const { sellerKp, seller, nftMint, nftPrice } = await _listNft();
 
     try {
       await program.methods
-        .list(price)
+        .list(nftPrice)
         .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
         .signers([sellerKp])
         .rpc();

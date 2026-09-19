@@ -1,10 +1,9 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
-import { setupSellerWithNft } from "./utils/setup-seller-with-nft";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
+import { listNft } from "./utils/list-nft";
 
 describe("delist", () => {
   const provider = anchor.AnchorProvider.env();
@@ -16,28 +15,17 @@ describe("delist", () => {
       program.idl.constants.find((c) => c.name === "listingSeed")!.value,
   ));
 
-  const _setupSellerWithNft = () => setupSellerWithNft(
-    provider.connection, 
-    program.programId, 
-    listingSeed
-  );
-
-  const listNft = async () => {
-    const { sellerKp, seller, nftMint, listing, escrowNftAccount, sellerNftAccount } = await _setupSellerWithNft();
-
-    const price = new anchor.BN(LAMPORTS_PER_SOL);
-
-    await program.methods
-      .list(price)
-      .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
-      .signers([sellerKp])
-      .rpc();
-
-    return { nftMint, nftPrice: price, escrowNftAccount, listing, seller, sellerKp, sellerNftAccount };
-  }
+  const _listNft = () => listNft(provider.connection, program, listingSeed);
 
   it("delists an NFT", async () => {
-    const { seller, sellerKp, nftMint, nftPrice, sellerNftAccount, escrowNftAccount, listing } = await listNft();
+    const { 
+      seller, 
+      sellerKp, 
+      nftMint, 
+      sellerNftAccount, 
+      escrowNftAccount, 
+      listing 
+    } = await _listNft();
 
     await program.methods
       .delist()
