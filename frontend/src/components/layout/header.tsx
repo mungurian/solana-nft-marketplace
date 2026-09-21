@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { WalletConnectButton } from "@/components/wallet/wallet-connect-button";
 
 export function Header() {
@@ -12,7 +13,10 @@ export function Header() {
         >
           NFT Marketplace
         </Link>
-        <WalletConnectButton />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <WalletConnectButton />
+        </div>
       </div>
     </header>
   );
