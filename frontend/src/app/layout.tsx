@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { AppLayout } from "@/components/layout/app-layout";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { SolanaProvider } from "@/components/providers/solana-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <SolanaProvider>
-            <AppLayout>{children}</AppLayout>
+            <QueryProvider>
+              <AppLayout>{children}</AppLayout>
+            </QueryProvider>
           </SolanaProvider>
           <ToastProvider />
         </ThemeProvider>
