@@ -26,7 +26,7 @@ export function ListingCard({ nftMint, seller, priceLamports }: ListingCardProps
     <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
       <div className="aspect-square w-full bg-zinc-100 dark:bg-zinc-900">
         {isLoading ? (
-          <div className="h-full w-full animate-pulse" />
+          <div className="skeleton h-full w-full" />
         ) : metadata?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -41,9 +41,13 @@ export function ListingCard({ nftMint, seller, priceLamports }: ListingCardProps
         )}
       </div>
       <div className="p-4">
-        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
-          {isLoading ? "Loading…" : (metadata?.name ?? truncateAddress(nftMint))}
-        </p>
+        {isLoading ? (
+          <div className="skeleton h-4 w-2/3 rounded-md" />
+        ) : (
+          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+            {metadata?.name ?? truncateAddress(nftMint)}
+          </p>
+        )}
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           Seller {truncateAddress(seller)}
         </p>
