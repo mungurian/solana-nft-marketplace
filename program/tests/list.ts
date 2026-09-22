@@ -5,9 +5,9 @@ import { NftMarketplace } from "../target/types/nft_marketplace";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL, SendTransactionError } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
-import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
-import { setupSellerWithNft } from "./utils/setup-seller-with-nft";
-import { listNft } from "./utils/list-nft";
+import { requestAirdropAndConfirm } from "../fixtures/request-airadrop-and-confirm";
+import { setupSellerWithNft } from "../fixtures/setup-seller-with-nft";
+import { listNft } from "../fixtures/list-nft";
 
 describe("list", () => {
   const provider = anchor.AnchorProvider.env();

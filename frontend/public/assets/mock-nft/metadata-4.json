@@ -1,0 +1,7 @@
+{
+  "name": "Test NFT #4",
+  "symbol": "TNFT",
+  "description": "Mock NFT used for local development and testing of the marketplace UI.",
+  "image": "http://localhost:3000/assets/mock-nft/test-nft4.jpeg",
+  "attributes": []
+}

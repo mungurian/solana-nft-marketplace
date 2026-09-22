@@ -3,9 +3,9 @@ import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
-import { listNft } from "./utils/list-nft";
+import { listNft } from "../fixtures/list-nft";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
+import { requestAirdropAndConfirm } from "../fixtures/request-airadrop-and-confirm";
 
 // `seller` may show a false TS error here ("does not exist in type ResolvedAccounts...").
 // It's both `signer: true` and `relations: ["listing"]` (from `has_one = seller`) in the IDL;

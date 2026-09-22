@@ -3,9 +3,9 @@ import { Program } from "@anchor-lang/core";
 import { NftMarketplace } from "../target/types/nft_marketplace";
 import { Keypair, LAMPORTS_PER_SOL, SendTransactionError } from "@solana/web3.js";
 import { getAccount, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { requestAirdropAndConfirm } from "./utils/request-airadrop-and-confirm";
+import { requestAirdropAndConfirm } from "../fixtures/request-airadrop-and-confirm";
 import { assert } from "chai";
-import { listNft } from "./utils/list-nft";
+import { listNft } from "../fixtures/list-nft";
 
 describe("buy", () => {
   const provider = anchor.AnchorProvider.env();

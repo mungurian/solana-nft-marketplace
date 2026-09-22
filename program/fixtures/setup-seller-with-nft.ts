@@ -8,13 +8,14 @@ export async function setupSellerWithNft(
     connection: anchor.web3.Connection,
     programId: anchor.web3.PublicKey,
     listingSeed: Buffer,
+    nftParam?: Parameters<typeof setupNft>[2],
 ) {
     const sellerKp = Keypair.generate();
     const seller = sellerKp.publicKey;
 
     await requestAirdropAndConfirm(connection, sellerKp, 3 * LAMPORTS_PER_SOL);
 
-    const nftMint = await setupNft(connection, sellerKp);
+    const nftMint = await setupNft(connection, sellerKp, nftParam);
     const [listing] = PublicKey.findProgramAddressSync(
       [listingSeed, nftMint.toBuffer()], 
       programId

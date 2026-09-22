@@ -1,6 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { setupSellerWithNft } from "./setup-seller-with-nft";
-import { NftMarketplace } from "../../target/types/nft_marketplace";
+import { NftMarketplace } from "../target/types/nft_marketplace";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
@@ -8,11 +8,13 @@ export async function listNft(
   connection: anchor.web3.Connection,
   program: anchor.Program<NftMarketplace>,
   listingSeed: Buffer,
+  nftParam?: Parameters<typeof setupSellerWithNft>[3],
 ) {
   const { sellerKp, seller, nftMint, listing, escrowNftAccount, sellerNftAccount } = await setupSellerWithNft(
     connection,
     program.programId,
     listingSeed,
+    nftParam,
   );
 
   const price = new anchor.BN(LAMPORTS_PER_SOL);

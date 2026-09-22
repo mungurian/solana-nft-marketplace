@@ -23,5 +23,6 @@ test = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
 test-list = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/list.ts\""
 test-buy = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/buy.ts\""
 test-delist = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/delist.ts\""
+seed = "pnpm run seed"
 
 [hooks]
