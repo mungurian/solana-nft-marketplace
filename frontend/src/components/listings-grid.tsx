@@ -1,34 +1,9 @@
-"use client";
-
 import { ListingCard } from "@/components/listing-card";
-import { ListingCardSkeleton } from "@/components/listing-card-skeleton";
-import { useListings } from "@/hooks/use-listings";
+import type { ListingData } from "@/lib/solana/listings";
+import { LISTINGS_GRID_CLASSNAME } from "@/lib/ui";
 
-const GRID_CLASSNAME = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
-const SKELETON_COUNT = 6;
-
-export function ListingsGrid() {
-  const { data: listings, isLoading, isError, error } = useListings();
-
-  if (isLoading) {
-    return (
-      <div className={GRID_CLASSNAME}>
-        {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-          <ListingCardSkeleton key={index} />
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <p className="py-24 text-center text-sm text-red-600 dark:text-red-400">
-        Failed to load listings: {error.message}
-      </p>
-    );
-  }
-
-  if (!listings || listings.length === 0) {
+export function ListingsGrid({ listings }: { listings: ListingData[] }) {
+  if (listings.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
@@ -42,7 +17,7 @@ export function ListingsGrid() {
   }
 
   return (
-    <div className={GRID_CLASSNAME}>
+    <div className={LISTINGS_GRID_CLASSNAME}>
       {listings.map((listing) => (
         <ListingCard key={listing.publicKey} {...listing} />
       ))}

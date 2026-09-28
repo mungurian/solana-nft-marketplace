@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description: "A Solana NFT marketplace.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children, modal }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
@@ -35,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SolanaProvider>
             <QueryProvider>
               <AppLayout>{children}</AppLayout>
+              {modal}
             </QueryProvider>
           </SolanaProvider>
           <ToastProvider />
