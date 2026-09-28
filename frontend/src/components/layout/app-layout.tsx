@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Footer } from "./footer";
 import { Header } from "./header";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -9,6 +10,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
