@@ -9,12 +9,14 @@ export async function listNft(
   program: anchor.Program<NftMarketplace>,
   listingSeed: Buffer,
   nftParam?: Parameters<typeof setupSellerWithNft>[3],
+  sellerKp?: Parameters<typeof setupSellerWithNft>[4],
 ) {
-  const { sellerKp, seller, nftMint, listing, escrowNftAccount, sellerNftAccount } = await setupSellerWithNft(
+  const { sellerKp: resolvedSellerKp, seller, nftMint, listing, escrowNftAccount, sellerNftAccount } = await setupSellerWithNft(
     connection,
     program.programId,
     listingSeed,
     nftParam,
+    sellerKp,
   );
 
   const price = new anchor.BN(LAMPORTS_PER_SOL);
@@ -22,10 +24,18 @@ export async function listNft(
   await program.methods
     .list(price)
     .accounts({ seller, nftMint, tokenProgram: TOKEN_PROGRAM_ID })
-    .signers([sellerKp])
+    .signers([resolvedSellerKp])
     .rpc();
 
   console.log("Listed NFT:", nftMint.toBase58(), "for:", price.toString(), "lamports");
 
-  return { nftMint, nftPrice: price, escrowNftAccount, listing, seller, sellerKp, sellerNftAccount };
+  return {
+    nftMint,
+    nftPrice: price,
+    escrowNftAccount,
+    listing,
+    seller,
+    sellerKp: resolvedSellerKp,
+    sellerNftAccount,
+  };
 }

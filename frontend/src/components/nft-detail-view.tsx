@@ -6,6 +6,9 @@ type NftDetailViewProps = {
   seller?: string;
   mint?: string;
   price?: string;
+  buyLabel?: string;
+  isBuyDisabled?: boolean;
+  onBuy?: () => void;
 };
 
 export function NftDetailView({
@@ -16,6 +19,9 @@ export function NftDetailView({
   seller,
   mint,
   price,
+  buyLabel,
+  isBuyDisabled,
+  onBuy,
 }: NftDetailViewProps) {
   return (
     <div className="flex flex-col gap-6 sm:flex-row">
@@ -73,10 +79,11 @@ export function NftDetailView({
 
         <button
           type="button"
-          disabled
-          className="mt-6 w-full rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-50 opacity-60 dark:bg-zinc-50 dark:text-zinc-900 sm:w-auto"
+          disabled={isBuyDisabled || !onBuy}
+          onClick={onBuy}
+          className="mt-6 w-full rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:w-auto"
         >
-          Buy — coming soon
+          {buyLabel ?? "Buy — coming soon"}
         </button>
       </div>
     </div>

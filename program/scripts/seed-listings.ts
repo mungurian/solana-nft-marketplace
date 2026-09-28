@@ -33,13 +33,13 @@ function loadWallet(walletPath: string) {
   return new Wallet(Keypair.fromSecretKey(Uint8Array.from(secret)));
 }
 
-function mockNftParam(index: number, frontendUrl: string): NftParam {
+function mockNftParam(index: number, mockAssetsUrl: string): NftParam {
   const n = (index % MOCK_NFT_COUNT) + 1;
 
   return {
     name: `Test NFT #${n}`,
     symbol: "TNFT",
-    uri: `${frontendUrl}/assets/mock-nft/metadata-${n}.json`,
+    uri: `${mockAssetsUrl}/assets/mock-nft/metadata-${n}.json`,
     sellerFeeBasisPoints: percentAmount(5),
   };
 }
@@ -50,11 +50,12 @@ async function main() {
       count: { type: "string", short: "c", default: String(MOCK_NFT_COUNT) },
       "wallet-path": { type: "string" },
       force: { type: "boolean", default: false },
+      "single-seller": { type: "boolean", default: false },
     },
   });
 
   const rpcUrl = requireEnv("ANCHOR_PROVIDER_URL");
-  const frontendUrl = requireEnv("SEED_FRONTEND_URL");
+  const mockAssetsUrl = requireEnv("SEED_MOCK_ASSETS_URL");
 
   if (!isLocalRpcUrl(rpcUrl) && !values.force) {
     throw new Error(
@@ -85,7 +86,8 @@ async function main() {
       connection,
       program,
       listingSeed,
-      mockNftParam(i, frontendUrl),
+      mockNftParam(i, mockAssetsUrl),
+      values["single-seller"] ? wallet.payer : undefined,
     );
     console.log(
       `[${i + 1}/${count}] listed ${nftMint.toBase58()} for ${nftPrice.toString()} lamports`,

@@ -1,4 +1,10 @@
+"use client";
+
+import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+
 import { NftDetailView } from "@/components/nft-detail-view";
+import { useBuyListing } from "@/hooks/use-buy-listing";
 import { formatSol, truncateAddress } from "@/lib/format";
 import type { ListingData } from "@/lib/solana/listings";
 import type { NftMetadata } from "@/lib/solana/nft-metadata";
@@ -9,6 +15,9 @@ type NftDetailProps = {
 };
 
 export function NftDetail({ listing, metadata }: NftDetailProps) {
+  const { publicKey } = useWallet();
+  const buyListing = useBuyListing();
+
   if (!listing) {
     return (
       <p className="py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
@@ -16,6 +25,24 @@ export function NftDetail({ listing, metadata }: NftDetailProps) {
       </p>
     );
   }
+
+  const isOwnListing = publicKey?.toBase58() === listing.seller;
+  const priceLabel = `${formatSol(listing.priceLamports)} SOL`;
+
+  const handleBuy = () => {
+    buyListing.mutate(listing.nftMint, {
+      onSuccess: () => toast.success("NFT purchased!"),
+      onError: (error) => toast.error(error.message || "Failed to buy this NFT."),
+    });
+  };
+
+  const buyLabel = !publicKey
+    ? "Connect a wallet to buy"
+    : isOwnListing
+      ? "You own this listing"
+      : buyListing.isPending
+        ? "Buying…"
+        : `Buy for ${priceLabel}`;
 
   return (
     <NftDetailView
@@ -25,7 +52,10 @@ export function NftDetail({ listing, metadata }: NftDetailProps) {
       description={metadata.description}
       seller={truncateAddress(listing.seller)}
       mint={truncateAddress(listing.nftMint)}
-      price={`${formatSol(listing.priceLamports)} SOL`}
+      price={priceLabel}
+      buyLabel={buyLabel}
+      isBuyDisabled={!publicKey || isOwnListing || buyListing.isPending}
+      onBuy={handleBuy}
     />
   );
 }

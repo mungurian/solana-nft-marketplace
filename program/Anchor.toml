@@ -9,6 +9,9 @@ skip-lint = false
 [programs.localnet]
 nft_marketplace = "C9RrLfoPdABJEM7C4xBnjjatjEpvJFyrqdyArPafVE2Q"
 
+[programs.devnet]
+nft_marketplace = "C9RrLfoPdABJEM7C4xBnjjatjEpvJFyrqdyArPafVE2Q"
+
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
