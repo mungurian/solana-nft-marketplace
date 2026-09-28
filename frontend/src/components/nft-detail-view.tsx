@@ -8,6 +8,7 @@ type NftDetailViewProps = {
   price?: string;
   buyLabel?: string;
   isBuyDisabled?: boolean;
+  isOwner?: boolean;
   onBuy?: () => void;
 };
 
@@ -21,11 +22,17 @@ export function NftDetailView({
   price,
   buyLabel,
   isBuyDisabled,
+  isOwner,
   onBuy,
 }: NftDetailViewProps) {
   return (
     <div className="flex flex-col gap-6 sm:flex-row">
-      <div className="aspect-square w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900 sm:w-80">
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900 sm:w-80">
+        {isOwner && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-zinc-900/80 px-2.5 py-1 text-xs font-medium text-zinc-50 backdrop-blur-sm dark:bg-zinc-50/90 dark:text-zinc-900">
+            Listed by you
+          </span>
+        )}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

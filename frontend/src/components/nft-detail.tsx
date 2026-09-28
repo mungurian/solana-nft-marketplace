@@ -55,6 +55,7 @@ export function NftDetail({ listing, metadata }: NftDetailProps) {
       price={priceLabel}
       buyLabel={buyLabel}
       isBuyDisabled={!publicKey || isOwnListing || buyListing.isPending}
+      isOwner={isOwnListing}
       onBuy={handleBuy}
     />
   );

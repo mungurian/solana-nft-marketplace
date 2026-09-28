@@ -7,6 +7,7 @@ type ListingCardViewProps = {
   name?: string;
   seller?: string;
   price?: string;
+  isOwner?: boolean;
 };
 
 const CARD_CLASSNAME =
@@ -19,10 +20,16 @@ export function ListingCardView({
   name,
   seller,
   price,
+  isOwner,
 }: ListingCardViewProps) {
   const body = (
     <>
-      <div className="aspect-square w-full bg-zinc-100 dark:bg-zinc-900">
+      <div className="relative aspect-square w-full bg-zinc-100 dark:bg-zinc-900">
+        {isOwner && (
+          <span className="absolute left-2 top-2 z-10 rounded-full bg-zinc-900/80 px-2.5 py-1 text-xs font-medium text-zinc-50 backdrop-blur-sm dark:bg-zinc-50/90 dark:text-zinc-900">
+            Listed by you
+          </span>
+        )}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

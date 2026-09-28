@@ -13,7 +13,13 @@ export function Header() {
         >
           NFT Marketplace
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/list"
+            className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          >
+            List NFT
+          </Link>
           <ThemeToggle />
           <WalletConnectButton />
         </div>
