@@ -14,7 +14,7 @@ import { listNft } from "../fixtures/list-nft";
 
 type NftParam = Omit<Parameters<typeof createNft>[1], "mint">;
 
-const MOCK_NFT_COUNT = 5;
+const MOCK_NFT_COUNT = 15;
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -33,8 +33,8 @@ function loadWallet(walletPath: string) {
   return new Wallet(Keypair.fromSecretKey(Uint8Array.from(secret)));
 }
 
-function mockNftParam(index: number, mockAssetsUrl: string): NftParam {
-  const n = (index % MOCK_NFT_COUNT) + 1;
+function mockNftParam(index: number, mockAssetsUrl: string, offset: number): NftParam {
+  const n = ((offset + index) % MOCK_NFT_COUNT) + 1;
 
   return {
     name: `Test NFT #${n}`,
@@ -48,6 +48,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       count: { type: "string", short: "c", default: String(MOCK_NFT_COUNT) },
+      offset: { type: "string", default: "0" },
       "wallet-path": { type: "string" },
       force: { type: "boolean", default: false },
       "single-seller": { type: "boolean", default: false },
@@ -80,13 +81,14 @@ async function main() {
   );
 
   const count = Number(values.count);
+  const offset = Number(values.offset);
 
   for (let i = 0; i < count; i++) {
     const { nftMint, nftPrice } = await listNft(
       connection,
       program,
       listingSeed,
-      mockNftParam(i, mockAssetsUrl),
+      mockNftParam(i, mockAssetsUrl, offset),
       values["single-seller"] ? wallet.payer : undefined,
     );
     console.log(
