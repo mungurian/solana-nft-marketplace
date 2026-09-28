@@ -2,6 +2,6 @@
   "name": "Test NFT #5",
   "symbol": "TNFT",
   "description": "Mock NFT used for local development and testing of the marketplace UI.",
-  "image": "http://localhost:3000/assets/mock-nft/test-nft5.jpeg",
+  "image": "https://cdn.jsdelivr.net/gh/mungurian/solana-nft-marketplace@main/frontend/public/assets/mock-nft/test-nft5.jpeg",
   "attributes": []
 }
