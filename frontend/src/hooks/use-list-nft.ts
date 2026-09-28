@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -19,6 +19,7 @@ export function useListNft() {
   const program = useProgram();
   const { publicKey } = useWallet();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ nftMint, priceLamports }: ListNftArgs) => {
@@ -37,6 +38,7 @@ export function useListNft() {
     },
     onSuccess: async () => {
       await revalidateListings();
+      await queryClient.invalidateQueries({ queryKey: ["wallet-nfts"] });
       router.refresh();
     },
   });

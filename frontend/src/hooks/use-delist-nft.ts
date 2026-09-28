@@ -9,7 +9,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { revalidateListings } from "@/lib/solana/actions";
 import { useProgram } from "./use-program";
 
-export function useBuyListing() {
+export function useDelistNft() {
   const program = useProgram();
   const { publicKey } = useWallet();
   const router = useRouter();
@@ -22,9 +22,9 @@ export function useBuyListing() {
       }
 
       return program.methods
-        .buy()
-        .accounts({
-          buyer: publicKey,
+        .delist()
+        .accountsPartial({
+          seller: publicKey,
           nftMint: new PublicKey(nftMint),
           tokenProgram: TOKEN_PROGRAM_ID,
         })

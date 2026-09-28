@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 import { NftDetailView } from "@/components/nft-detail-view";
 import { useBuyListing } from "@/hooks/use-buy-listing";
+import { useDelistNft } from "@/hooks/use-delist-nft";
 import { formatSol, truncateAddress } from "@/lib/format";
 import type { ListingData } from "@/lib/solana/listings";
 import type { NftMetadata } from "@/lib/solana/nft-metadata";
@@ -17,6 +18,7 @@ type NftDetailProps = {
 export function NftDetail({ listing, metadata }: NftDetailProps) {
   const { publicKey } = useWallet();
   const buyListing = useBuyListing();
+  const delistNft = useDelistNft();
 
   if (!listing) {
     return (
@@ -36,13 +38,20 @@ export function NftDetail({ listing, metadata }: NftDetailProps) {
     });
   };
 
+  const handleDelist = () => {
+    delistNft.mutate(listing.nftMint, {
+      onSuccess: () => toast.success("Listing removed."),
+      onError: (error) => toast.error(error.message || "Failed to delist this NFT."),
+    });
+  };
+
   const buyLabel = !publicKey
     ? "Connect a wallet to buy"
-    : isOwnListing
-      ? "You own this listing"
-      : buyListing.isPending
-        ? "Buying…"
-        : `Buy for ${priceLabel}`;
+    : buyListing.isPending
+      ? "Buying…"
+      : `Buy for ${priceLabel}`;
+
+  const delistLabel = delistNft.isPending ? "Delisting…" : "Delist";
 
   return (
     <NftDetailView
@@ -54,9 +63,12 @@ export function NftDetail({ listing, metadata }: NftDetailProps) {
       mint={truncateAddress(listing.nftMint)}
       price={priceLabel}
       buyLabel={buyLabel}
-      isBuyDisabled={!publicKey || isOwnListing || buyListing.isPending}
+      isBuyDisabled={!publicKey || buyListing.isPending}
       isOwner={isOwnListing}
       onBuy={handleBuy}
+      delistLabel={delistLabel}
+      isDelistDisabled={delistNft.isPending}
+      onDelist={handleDelist}
     />
   );
 }

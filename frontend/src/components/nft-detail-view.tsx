@@ -10,6 +10,9 @@ type NftDetailViewProps = {
   isBuyDisabled?: boolean;
   isOwner?: boolean;
   onBuy?: () => void;
+  delistLabel?: string;
+  isDelistDisabled?: boolean;
+  onDelist?: () => void;
 };
 
 export function NftDetailView({
@@ -24,6 +27,9 @@ export function NftDetailView({
   isBuyDisabled,
   isOwner,
   onBuy,
+  delistLabel,
+  isDelistDisabled,
+  onDelist,
 }: NftDetailViewProps) {
   return (
     <div className="flex flex-col gap-6 sm:flex-row">
@@ -84,14 +90,25 @@ export function NftDetailView({
           <div className="skeleton mt-4 h-9 w-1/3 rounded-md" />
         )}
 
-        <button
-          type="button"
-          disabled={isBuyDisabled || !onBuy}
-          onClick={onBuy}
-          className="mt-6 w-full rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:w-auto"
-        >
-          {buyLabel ?? "Buy — coming soon"}
-        </button>
+        {isOwner ? (
+          <button
+            type="button"
+            disabled={isDelistDisabled || !onDelist}
+            onClick={onDelist}
+            className="mt-6 w-full rounded-full border border-red-600 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-500 dark:text-red-500 dark:hover:bg-red-500 dark:hover:text-zinc-950 sm:w-auto"
+          >
+            {delistLabel ?? "Delist"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={isBuyDisabled || !onBuy}
+            onClick={onBuy}
+            className="mt-6 w-full rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:w-auto"
+          >
+            {buyLabel ?? "Buy — coming soon"}
+          </button>
+        )}
       </div>
     </div>
   );
